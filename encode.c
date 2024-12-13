@@ -447,6 +447,9 @@ Status do_encoding(EncodeInfo *encodeInfo){
 }
 
 Status copy_remaining_img_data(FILE *fptr_src_img, FILE *fptr_stegano_img){
+    /*
+        here when we try to use fgetc(), the issue arises when we run the loop till EOF, since EOF expands to -1 and the src bmp file may contain 0xFF as a value for a color channel, which also converts to -1, due to which the loop stops whenever it encounters 0xFF, and doesn't run till the EOF, due to which we do not get a proper output for the steganoed bmp file. Due to this reason, fread() and fwrite() functions are used
+    */ 
     char remaining_data_buffer[MAX_DATA_BUF_SIZE];    
 
     long file_pointer_pos_after_encode_operation = ftell(fptr_src_img);
@@ -457,6 +460,7 @@ Status copy_remaining_img_data(FILE *fptr_src_img, FILE *fptr_stegano_img){
 
     fseek(fptr_src_img,file_pointer_pos_after_encode_operation,SEEK_SET);
 
+    //read from the current file pointer position till the end of file and write in output bmp file
     fread(remaining_data_buffer,(end_of_file_pos - file_pointer_pos_after_encode_operation),1,fptr_src_img);
 
     fwrite(remaining_data_buffer,(end_of_file_pos - file_pointer_pos_after_encode_operation),1,fptr_stegano_img);
