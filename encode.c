@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "common.h"
 #include "encode.h"
 #include "types.h"
 
@@ -152,6 +154,10 @@ Status open_files(EncodeInfo *encodeInfo)
     return e_success;
 }
 
+/*
+    Check whether the source bmp file has the capacity to encode contents of secret file
+*/
+
 Status check_capacity(EncodeInfo *encodeInfo){
     printf("INFO: Checking for %s size\n",encodeInfo->secret_fname);
     encodeInfo->size_secret_file = get_file_size(encodeInfo->fptr_secret);
@@ -180,30 +186,28 @@ Status check_capacity(EncodeInfo *encodeInfo){
     */
 
     // Bytes required to encode the magic string "#."
-    uint magic_string_size = 2 * 8;
+    uint magic_string_size = strlen(MAGIC_STRING) * 8;
 
     /*
-        The number of bytes required to encode the length of the secret file extension.
-        For example, if the file extension is ".txt" (4 characters), we need 4 * 8 bits 
-        (or 32 bits) to store this length so the decoder can identify how many bytes to 
-        read for the file extension.
+        The number of bytes required to encode the length of the secret file extension (which will be an integer value).
     */
-    uint secret_file_extn_length_size = strlen(encodeInfo->extn_secret_file) * 8;
+    size_t secret_file_extn_length_size = sizeof((int)strlen(encodeInfo->extn_secret_file)) * 8;
 
     /*
         The number of bytes required to encode the actual secret file extension name.
-        For instance, if the extension is ".txt" (4 characters), this requires 4 * 8 bits 
-        (or 32 bits).
+        For example, if the file extension is ".txt" (4 characters), we need 4 * 8 bytes 
+        (or 32 bytes) to store this length so the decoder can identify how many bytes to 
+        read for the file extension.
     */
     uint secret_file_extn_name_size = strlen(encodeInfo->extn_secret_file) * 8;
 
     //The number of bytes required to encode the length of the secret file's text content.
-    uint secret_file_text_length_size = encodeInfo->size_secret_file * 8;
+    size_t secret_file_content_length_size = sizeof((int)encodeInfo->size_secret_file) * 8;
 
     //The number of bytes required to encode the actual text content of the secret file.
-    uint secret_file_text_size = encodeInfo->size_secret_file * 8;
+    uint secret_file_content_size = encodeInfo->size_secret_file * 8;
 
-    uint expected_capacity = bmp_header_size + magic_string_size + secret_file_extn_length_size + secret_file_extn_name_size + secret_file_text_length_size + secret_file_text_size;
+    uint expected_capacity = bmp_header_size + magic_string_size + secret_file_extn_length_size + secret_file_extn_name_size + secret_file_content_length_size + secret_file_content_size;
 
     if(encodeInfo->image_capacity <= expected_capacity){
         return e_failure;
@@ -214,7 +218,167 @@ Status check_capacity(EncodeInfo *encodeInfo){
 
 Status copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
     printf("INFO: Copying image header\n");
+    //since fptr_src_image now points to the 28th byte, rewind the file position indicator to the start
+    rewind(fptr_src_image);
+
+    char *bmp_header = (char *)calloc(54,sizeof(char));
+    if(bmp_header == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for bmp_header\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fread(bmp_header,54,1,fptr_src_image);
     
+    if(fwrite(bmp_header,54,1,fptr_stegano_image) != 1){
+        return e_failure;
+    }
+
+    free(bmp_header);
+
+    return e_success;
+}
+
+Status encode_data_size_to_lsb(size_t data_size, char *image_bytes_buffer){
+    /*
+        here the loop will iterate through the 32 bytes in image_buffer and encode each bit of integer data in LSB
+    */
+    for(int i=0;i<32;i++){
+        //clearing the LSB bit
+        image_bytes_buffer[i]&=0xFE;
+        //setting the LSB bit with data_size bit
+        image_bytes_buffer[i]|=(data_size & (1 << (31-i))) >> (31-i);
+    }
+
+}
+
+Status encode_byte_to_lsb(char data, char *image_bytes_buffer){
+    /*
+        here the loop will iterate through the 8 bytes in image_buffer and encode each bit of character data in LSB
+    */
+    for(int i=0;i<8;i++){
+        //clearing the LSB bit
+        image_bytes_buffer[i]&=0xFE;
+        //setting the LSB bit with data bit 
+        image_bytes_buffer[i]|=(data & (1 << (7-i))) >> (7-i);
+    }
+}
+
+Status encode_data_size_to_image(size_t data_size,FILE *fptr_src_img, FILE *fptr_stegano_img){
+    char *image_bytes_buffer = (char *)calloc(32,sizeof(char));
+    if(image_bytes_buffer == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for image_bytes_buffer\n");
+        exit(EXIT_FAILURE);
+    }
+    /* 
+        since sizeof(int) is 4bytes, and to encode each byte 8bytes of data is required from the src image file,  read 32bytes from source file and write to steganoed image file
+    */
+    fread(image_bytes_buffer,32,1,fptr_src_img);
+
+    encode_data_size_to_lsb(data_size,image_bytes_buffer);
+
+    fwrite(image_bytes_buffer,32,1,fptr_stegano_img);
+    
+    free(image_bytes_buffer);
+
+    return e_success;
+}
+
+Status encode_data_to_image(const char *data,int data_size,FILE *fptr_src_img,FILE *fptr_stegano_img){
+    char *image_bytes_buffer = (char *)calloc(8,sizeof(char));
+    if(image_bytes_buffer == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for image_bytes_buffer\n");
+        exit(EXIT_FAILURE);
+    }
+    /*
+        since 8bytes from source bmp file are needed to encode 1byte of data, read 8bytes from source file and write to steganoed image file
+    */
+    for(int i=0;i<data_size;i++){
+        fread(image_bytes_buffer,8,1,fptr_src_img);
+
+        encode_byte_to_lsb(data[i],image_bytes_buffer);
+
+        fwrite(image_bytes_buffer,8,1,fptr_stegano_img);
+    }
+
+    free(image_bytes_buffer);
+
+    return e_success;
+}
+
+Status encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
+    printf("INFO: Encoding magic string signature\n");
+
+    uint magic_string_length = strlen(magic_string);
+
+    if(encode_data_to_image(magic_string,magic_string_length,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
+        // printf("INFO: Done\n");
+    }
+    else{
+        fprintf(stderr,"ERROR: Magic string couldn't be encoded\n");
+        return e_failure;
+    }
+
+    return e_success;
+}
+
+Status encode_secret_file_extn_size(size_t extn_size,EncodeInfo *encodeInfo){
+    printf("INFO: Encoding size of secret file extension (an integer value)\n");
+
+    if(encode_data_size_to_image(extn_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
+
+    }
+    else{
+        fprintf(stderr,"ERROR: Secret file extension size couldn't be encoded\n");
+        return e_failure;
+    }
+    
+    return e_success;
+}
+
+Status encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
+    printf("INFO: Encoding size of secret file (an integer value)\n");
+
+    if(encode_data_size_to_image(file_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
+
+    }
+    else{
+        fprintf(stderr,"ERROR: Secret file content size couldn't be encoded\n");
+        return e_failure;
+    }
+    
+    return e_success;
+}
+
+Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
+    printf("INFO: Encoding secret file extension\n");
+
+    if(encode_data_to_image(file_extn,strlen(file_extn),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
+
+    }
+    else{
+        fprintf(stderr,"ERROR: Secret file extension couldn't be encoded\n");
+        return e_failure;
+    }
+
+    return e_success;
+}
+
+Status encode_secret_file_data(EncodeInfo *encodeInfo){
+    printf("INFO: Encoding secret file data\n");
+
+    rewind(encodeInfo->fptr_secret);
+
+    fread(encodeInfo->secret_data,encodeInfo->size_secret_file,1,encodeInfo->fptr_secret);
+
+    if(encode_data_to_image(encodeInfo->secret_data,strlen(encodeInfo->secret_data),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
+
+    }
+    else{
+        fprintf(stderr,"ERROR: Secret file data couldn't be encoded\n");
+        return e_failure;
+    }
+    
+    return e_success;
 }
 
 Status do_encoding(EncodeInfo *encodeInfo){
@@ -228,6 +392,42 @@ Status do_encoding(EncodeInfo *encodeInfo){
 
             if(copy_bmp_header(encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
                 printf("INFO: Done\n");
+
+                if(encode_magic_string(MAGIC_STRING,encodeInfo) == e_success){
+                    printf("INFO: Done\n");
+
+                    if(encode_secret_file_extn_size(sizeof((int)strlen(encodeInfo->extn_secret_file)),encodeInfo) == e_success){
+                        printf("INFO: Done\n");
+
+                        if(encode_secret_file_extn(encodeInfo->extn_secret_file,encodeInfo) == e_success){
+                            printf("INFO: Done\n");
+
+                            if(encode_secret_file_size(sizeof((int)encodeInfo->size_secret_file),encodeInfo) == e_success){
+                                printf("INFO: Done\n");
+
+                                if(encode_secret_file_data(encodeInfo) == e_success){
+                                    printf("INFO: Done\n");
+                                    fclose(encodeInfo->fptr_secret);
+                                }
+                                else{
+                                    return e_failure;
+                                }
+                            }
+                            else{
+                                return e_failure;
+                            }
+                        }
+                        else{
+                            return e_failure;
+                        }
+                    }
+                    else{
+                        return e_failure;
+                    }
+                }
+                else{
+                    return e_failure; 
+                }
             }
             else{
                 fprintf(stderr,"ERROR: Image header couldn't be copied\n");
@@ -243,5 +443,26 @@ Status do_encoding(EncodeInfo *encodeInfo){
         return e_failure;
     }
     
+    return e_success;
+}
+
+Status copy_remaining_img_data(FILE *fptr_src_img, FILE *fptr_stegano_img){
+    char remaining_data_buffer[MAX_DATA_BUF_SIZE];    
+
+    long file_pointer_pos_after_encode_operation = ftell(fptr_src_img);
+
+    fseek(fptr_src_img,0L,SEEK_END);
+
+    long end_of_file_pos = ftell(fptr_src_img);
+
+    fseek(fptr_src_img,file_pointer_pos_after_encode_operation,SEEK_SET);
+
+    fread(remaining_data_buffer,(end_of_file_pos - file_pointer_pos_after_encode_operation),1,fptr_src_img);
+
+    fwrite(remaining_data_buffer,(end_of_file_pos - file_pointer_pos_after_encode_operation),1,fptr_stegano_img);
+
+    fclose(fptr_src_img);
+    fclose(fptr_stegano_img);
+
     return e_success;
 }

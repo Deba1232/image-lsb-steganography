@@ -51,7 +51,8 @@ int main(int argc,char *argv[])
             if((read_and_validate_encode_args(argv,&encInfo) == e_success)){
 
                 if(do_encoding(&encInfo) == e_success){
-                    // printf("## Encoding done successfully ##\n");
+                    copy_remaining_img_data(encInfo.fptr_src_image,encInfo.fptr_stego_image);
+                    printf("\n## Encoding done successfully ##\n");
                 }
                 else{
                   fprintf(stderr,"## Aborting encoding procedure ##\n");  
