@@ -65,10 +65,10 @@ Status copy_bmp_header(FILE *fptr_src_image, FILE *fptr_dest_image);
 Status encode_byte_to_lsb(char data, char *image_buffer);
 
 /* Encode size(which is an integer value) into LSB of image data array */
-Status encode_data_size_to_lsb(size_t data, char *image_buffer);
+Status encode_data_size_to_lsb(long data, char *image_buffer);
 
 /* Encode function, which encodes data size to image */
-Status encode_data_size_to_image(size_t data_size, FILE *fptr_src_image, FILE *fptr_stego_image);
+Status encode_data_size_to_image(long data_size, FILE *fptr_src_image, FILE *fptr_stego_image);
 
 /* Encode function, which encodes data to image */
 Status encode_data_to_image(const char *data, int size, FILE *fptr_src_image, FILE *fptr_stego_image);
@@ -77,7 +77,7 @@ Status encode_data_to_image(const char *data, int size, FILE *fptr_src_image, FI
 Status encode_magic_string(const char *magic_string, EncodeInfo *encInfo);
 
 /* Store secret file extension size */
-Status encode_secret_file_extn_size(size_t extn_size,EncodeInfo *encInfo);
+Status encode_secret_file_extn_size(int extn_size,EncodeInfo *encInfo);
 
 /* Encode secret file size */
 Status encode_secret_file_size(long file_size, EncodeInfo *encInfo);

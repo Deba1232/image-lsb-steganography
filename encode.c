@@ -82,8 +82,8 @@ Status read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
                     }
                 }
                 else{
-                    printf("INFO: Output File not mentioned. Creating \"steged_img.bmp\" as default\n");
-                    encodeInfo->stego_image_fname = "steged_img.bmp";
+                    printf("INFO: Output File not mentioned. Creating \"steganoed_img.bmp\" as default\n");
+                    encodeInfo->stego_image_fname = "steganoed_img.bmp";
                 }
             }
            else{
@@ -238,7 +238,7 @@ Status copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
     return e_success;
 }
 
-Status encode_data_size_to_lsb(size_t data_size, char *image_bytes_buffer){
+Status encode_data_size_to_lsb(long data_size, char *image_bytes_buffer){
     /*
         here the loop will iterate through the 32 bytes in image_buffer and encode each bit of integer data in LSB
     */
@@ -263,8 +263,9 @@ Status encode_byte_to_lsb(char data, char *image_bytes_buffer){
     }
 }
 
-Status encode_data_size_to_image(size_t data_size,FILE *fptr_src_img, FILE *fptr_stegano_img){
+Status encode_data_size_to_image(long data_size,FILE *fptr_src_img, FILE *fptr_stegano_img){
     char *image_bytes_buffer = (char *)calloc(32,sizeof(char));
+
     if(image_bytes_buffer == NULL){
         fprintf(stderr,"Memory couldn't be allocated for image_bytes_buffer\n");
         exit(EXIT_FAILURE);
@@ -311,56 +312,48 @@ Status encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
     uint magic_string_length = strlen(magic_string);
 
     if(encode_data_to_image(magic_string,magic_string_length,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-        // printf("INFO: Done\n");
+        return e_success;
     }
     else{
         fprintf(stderr,"ERROR: Magic string couldn't be encoded\n");
         return e_failure;
     }
-
-    return e_success;
 }
 
-Status encode_secret_file_extn_size(size_t extn_size,EncodeInfo *encodeInfo){
+Status encode_secret_file_extn_size(int extn_size,EncodeInfo *encodeInfo){
     printf("INFO: Encoding size of secret file extension (an integer value)\n");
 
     if(encode_data_size_to_image(extn_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-
+        return e_success;
     }
     else{
         fprintf(stderr,"ERROR: Secret file extension size couldn't be encoded\n");
         return e_failure;
     }
-    
-    return e_success;
 }
 
 Status encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
     printf("INFO: Encoding size of secret file (an integer value)\n");
 
     if(encode_data_size_to_image(file_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-
+        return e_success;
     }
     else{
         fprintf(stderr,"ERROR: Secret file content size couldn't be encoded\n");
         return e_failure;
     }
-    
-    return e_success;
 }
 
 Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
     printf("INFO: Encoding secret file extension\n");
 
     if(encode_data_to_image(file_extn,strlen(file_extn),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-
+        return e_success;
     }
     else{
         fprintf(stderr,"ERROR: Secret file extension couldn't be encoded\n");
         return e_failure;
     }
-
-    return e_success;
 }
 
 Status encode_secret_file_data(EncodeInfo *encodeInfo){
@@ -371,14 +364,12 @@ Status encode_secret_file_data(EncodeInfo *encodeInfo){
     fread(encodeInfo->secret_data,encodeInfo->size_secret_file,1,encodeInfo->fptr_secret);
 
     if(encode_data_to_image(encodeInfo->secret_data,strlen(encodeInfo->secret_data),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-
+        return e_success;
     }
     else{
         fprintf(stderr,"ERROR: Secret file data couldn't be encoded\n");
         return e_failure;
     }
-    
-    return e_success;
 }
 
 Status do_encoding(EncodeInfo *encodeInfo){
@@ -396,13 +387,13 @@ Status do_encoding(EncodeInfo *encodeInfo){
                 if(encode_magic_string(MAGIC_STRING,encodeInfo) == e_success){
                     printf("INFO: Done\n");
 
-                    if(encode_secret_file_extn_size(sizeof((int)strlen(encodeInfo->extn_secret_file)),encodeInfo) == e_success){
+                    if(encode_secret_file_extn_size(strlen(encodeInfo->extn_secret_file),encodeInfo) == e_success){
                         printf("INFO: Done\n");
 
                         if(encode_secret_file_extn(encodeInfo->extn_secret_file,encodeInfo) == e_success){
                             printf("INFO: Done\n");
 
-                            if(encode_secret_file_size(sizeof((int)encodeInfo->size_secret_file),encodeInfo) == e_success){
+                            if(encode_secret_file_size(encodeInfo->size_secret_file,encodeInfo) == e_success){
                                 printf("INFO: Done\n");
 
                                 if(encode_secret_file_data(encodeInfo) == e_success){
