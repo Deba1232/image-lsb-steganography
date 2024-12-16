@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "encode.h"
+#include "decode.h"
 #include "types.h"
 
 OperationType check_operation_type(char *argv[]){
@@ -19,6 +20,7 @@ OperationType check_operation_type(char *argv[]){
 int main(int argc,char *argv[])
 {
     EncodeInfo encInfo;
+    DecodeInfo decodeInfo;
     uint img_size;
 
     // Check whether the proper amt. of CLA has been passed or not
@@ -45,7 +47,7 @@ int main(int argc,char *argv[])
         }
     }
     else if((argc > 3) && (argc < 6)){
-
+        //Encode operation
         if(check_operation_type(argv) == e_encode){
             printf("## Starting encoding procedure ##\n");
 
@@ -63,10 +65,27 @@ int main(int argc,char *argv[])
                 fprintf(stderr,"## Aborting encoding procedure ##\n");
             }
         }
+        //Decode operation
         else if(check_operation_type(argv) == e_decode){
             
             if(argc < 5){
                 printf("## Starting decoding procedure ##\n");
+
+                if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
+                    
+                    if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
+                    
+                        if(do_decoding(&decodeInfo) == d_success){
+                            // printf("\n## Decoding done successfully ##\n");
+                        }
+                        else{
+                            fprintf(stderr,"## Aborting decoding procedure ##\n");
+                        }
+                    }
+                }
+                else{
+                    fprintf(stderr,"## Aborting decoding procedure ##\n");
+                }
             }
             else{
                 printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
@@ -87,6 +106,19 @@ int main(int argc,char *argv[])
 
             if(check_operation_type(argv) == e_decode){
                 printf("## Starting decoding procedure ##\n");
+
+                if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
+                    
+                    if(do_decoding(&decodeInfo) == d_success){
+                        // printf("\n## Decoding done successfully ##\n");
+                    }
+                    else{
+                        fprintf(stderr,"## Aborting decoding procedure ##\n");
+                    }
+                }
+                else{
+                    fprintf(stderr,"## Aborting decoding procedure ##\n");
+                }
             }
             else if(check_operation_type(argv) == e_encode){
                 printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
