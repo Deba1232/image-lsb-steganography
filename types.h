@@ -11,6 +11,11 @@ typedef enum
     e_failure
 } EncodeStatus;
 
+typedef enum{
+    d_success,
+    d_failure
+} DecodeStatus;
+
 typedef enum
 {
     e_encode,
