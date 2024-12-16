@@ -40,7 +40,7 @@ uint get_file_size(FILE *fptr_secret_file){
 /*
     Check whether files with proper extensions have been passed or not in CLA
 */
-Status read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
+EncodeStatus read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
     if(strstr(argv[2],".bmp")){
         
         if(*(strstr(argv[2],".bmp") + 4) == '\0'){
@@ -111,7 +111,7 @@ Status read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
  * Output: FILE pointer for above files
  * Return Value: e_success or e_failure, on file errors
  */
-Status open_files(EncodeInfo *encodeInfo)
+EncodeStatus open_files(EncodeInfo *encodeInfo)
 {
     // Src Image file
     encodeInfo->fptr_src_image = fopen(encodeInfo->src_image_fname, "rb");
@@ -158,7 +158,7 @@ Status open_files(EncodeInfo *encodeInfo)
     Check whether the source bmp file has the capacity to encode contents of secret file
 */
 
-Status check_capacity(EncodeInfo *encodeInfo){
+EncodeStatus check_capacity(EncodeInfo *encodeInfo){
     printf("INFO: Checking for %s size\n",encodeInfo->secret_fname);
     encodeInfo->size_secret_file = get_file_size(encodeInfo->fptr_secret);
 
@@ -216,7 +216,7 @@ Status check_capacity(EncodeInfo *encodeInfo){
     return e_success;
 }
 
-Status copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
+EncodeStatus copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
     printf("INFO: Copying image header\n");
     //since fptr_src_image now points to the 28th byte, rewind the file position indicator to the start
     rewind(fptr_src_image);
@@ -238,7 +238,7 @@ Status copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
     return e_success;
 }
 
-Status encode_data_size_to_lsb(long data_size, char *image_bytes_buffer){
+EncodeStatus encode_data_size_to_lsb(long data_size, char *image_bytes_buffer){
     /*
         here the loop will iterate through the 32 bytes in image_buffer and encode each bit of integer data in LSB
     */
@@ -251,7 +251,7 @@ Status encode_data_size_to_lsb(long data_size, char *image_bytes_buffer){
 
 }
 
-Status encode_byte_to_lsb(char data, char *image_bytes_buffer){
+EncodeStatus encode_byte_to_lsb(char data, char *image_bytes_buffer){
     /*
         here the loop will iterate through the 8 bytes in image_buffer and encode each bit of character data in LSB
     */
@@ -263,7 +263,7 @@ Status encode_byte_to_lsb(char data, char *image_bytes_buffer){
     }
 }
 
-Status encode_data_size_to_image(long data_size,FILE *fptr_src_img, FILE *fptr_stegano_img){
+EncodeStatus encode_data_size_to_image(long data_size,FILE *fptr_src_img, FILE *fptr_stegano_img){
     char *image_bytes_buffer = (char *)calloc(32,sizeof(char));
 
     if(image_bytes_buffer == NULL){
@@ -284,7 +284,7 @@ Status encode_data_size_to_image(long data_size,FILE *fptr_src_img, FILE *fptr_s
     return e_success;
 }
 
-Status encode_data_to_image(const char *data,int data_size,FILE *fptr_src_img,FILE *fptr_stegano_img){
+EncodeStatus encode_data_to_image(const char *data,int data_size,FILE *fptr_src_img,FILE *fptr_stegano_img){
     char *image_bytes_buffer = (char *)calloc(8,sizeof(char));
     if(image_bytes_buffer == NULL){
         fprintf(stderr,"Memory couldn't be allocated for image_bytes_buffer\n");
@@ -306,7 +306,7 @@ Status encode_data_to_image(const char *data,int data_size,FILE *fptr_src_img,FI
     return e_success;
 }
 
-Status encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
+EncodeStatus encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
     printf("INFO: Encoding magic string signature\n");
 
     uint magic_string_length = strlen(magic_string);
@@ -320,7 +320,7 @@ Status encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
     }
 }
 
-Status encode_secret_file_extn_size(int extn_size,EncodeInfo *encodeInfo){
+EncodeStatus encode_secret_file_extn_size(int extn_size,EncodeInfo *encodeInfo){
     printf("INFO: Encoding size of secret file extension (an integer value)\n");
 
     if(encode_data_size_to_image(extn_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
@@ -332,7 +332,7 @@ Status encode_secret_file_extn_size(int extn_size,EncodeInfo *encodeInfo){
     }
 }
 
-Status encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
+EncodeStatus encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
     printf("INFO: Encoding size of secret file (an integer value)\n");
 
     if(encode_data_size_to_image(file_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
@@ -344,7 +344,7 @@ Status encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
     }
 }
 
-Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
+EncodeStatus encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
     printf("INFO: Encoding secret file extension\n");
 
     if(encode_data_to_image(file_extn,strlen(file_extn),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
@@ -356,7 +356,7 @@ Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
     }
 }
 
-Status encode_secret_file_data(EncodeInfo *encodeInfo){
+EncodeStatus encode_secret_file_data(EncodeInfo *encodeInfo){
     printf("INFO: Encoding secret file data\n");
 
     rewind(encodeInfo->fptr_secret);
@@ -372,7 +372,7 @@ Status encode_secret_file_data(EncodeInfo *encodeInfo){
     }
 }
 
-Status do_encoding(EncodeInfo *encodeInfo){
+EncodeStatus do_encoding(EncodeInfo *encodeInfo){
     printf("INFO: Opening required files...\n");
 
     if(open_files(encodeInfo) == e_success){
@@ -437,7 +437,7 @@ Status do_encoding(EncodeInfo *encodeInfo){
     return e_success;
 }
 
-Status copy_remaining_img_data(FILE *fptr_src_img, FILE *fptr_stegano_img){
+EncodeStatus copy_remaining_img_data(FILE *fptr_src_img, FILE *fptr_stegano_img){
     /*
         here when we try to use fgetc(), the issue arises when we run the loop till EOF, since EOF expands to -1 and the src bmp file may contain 0xFF as a value for a color channel, which also converts to -1, due to which the loop stops whenever it encounters 0xFF, and doesn't run till the EOF, due to which we do not get a proper output for the steganoed bmp file. Due to this reason, fread() and fwrite() functions are used
     */ 

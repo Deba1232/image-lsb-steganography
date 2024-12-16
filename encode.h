@@ -50,48 +50,48 @@ uint get_file_size(FILE *fptr);
 OperationType check_operation_type(char *argv[]);
 
 /* Read and validate Encode args from argv */
-Status read_and_validate_encode_args(char *argv[], EncodeInfo *encInfo);
+EncodeStatus read_and_validate_encode_args(char *argv[], EncodeInfo *encInfo);
 
 /* Get File pointers for i/p and o/p files */
-Status open_files(EncodeInfo *encInfo);
+EncodeStatus open_files(EncodeInfo *encInfo);
 
 /* check capacity */
-Status check_capacity(EncodeInfo *encInfo);
+EncodeStatus check_capacity(EncodeInfo *encInfo);
 
 /* Copy bmp image header */
-Status copy_bmp_header(FILE *fptr_src_image, FILE *fptr_dest_image);
+EncodeStatus copy_bmp_header(FILE *fptr_src_image, FILE *fptr_dest_image);
 
 /* Encode a byte into LSB of image data array */
-Status encode_byte_to_lsb(char data, char *image_buffer);
+EncodeStatus encode_byte_to_lsb(char data, char *image_buffer);
 
 /* Encode size(which is an integer value) into LSB of image data array */
-Status encode_data_size_to_lsb(long data, char *image_buffer);
+EncodeStatus encode_data_size_to_lsb(long data, char *image_buffer);
 
 /* Encode function, which encodes data size to image */
-Status encode_data_size_to_image(long data_size, FILE *fptr_src_image, FILE *fptr_stego_image);
+EncodeStatus encode_data_size_to_image(long data_size, FILE *fptr_src_image, FILE *fptr_stego_image);
 
 /* Encode function, which encodes data to image */
-Status encode_data_to_image(const char *data, int size, FILE *fptr_src_image, FILE *fptr_stego_image);
+EncodeStatus encode_data_to_image(const char *data, int size, FILE *fptr_src_image, FILE *fptr_stego_image);
 
 /* Store Magic String */
-Status encode_magic_string(const char *magic_string, EncodeInfo *encInfo);
+EncodeStatus encode_magic_string(const char *magic_string, EncodeInfo *encInfo);
 
 /* Store secret file extension size */
-Status encode_secret_file_extn_size(int extn_size,EncodeInfo *encInfo);
+EncodeStatus encode_secret_file_extn_size(int extn_size,EncodeInfo *encInfo);
 
 /* Encode secret file size */
-Status encode_secret_file_size(long file_size, EncodeInfo *encInfo);
+EncodeStatus encode_secret_file_size(long file_size, EncodeInfo *encInfo);
 
 /* Encode secret file extenstion */
-Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encInfo);
+EncodeStatus encode_secret_file_extn(const char *file_extn, EncodeInfo *encInfo);
 
 /* Encode secret file data*/
-Status encode_secret_file_data(EncodeInfo *encInfo);
+EncodeStatus encode_secret_file_data(EncodeInfo *encInfo);
 
 /* Perform the encoding */
-Status do_encoding(EncodeInfo *encInfo);
+EncodeStatus do_encoding(EncodeInfo *encInfo);
 
 /* Copy remaining image bytes from src to stego image after encoding */
-Status copy_remaining_img_data(FILE *fptr_src, FILE *fptr_dest);
+EncodeStatus copy_remaining_img_data(FILE *fptr_src, FILE *fptr_dest);
 
 #endif

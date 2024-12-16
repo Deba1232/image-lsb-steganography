@@ -9,7 +9,7 @@ typedef enum
 {
     e_success,
     e_failure
-} Status;
+} EncodeStatus;
 
 typedef enum
 {
