@@ -29,10 +29,11 @@ int main(int argc,char *argv[])
     else if(argc == 2){
 
         if(!strcmp(argv[1],"--help")){
-            printf("Usage: %s [OPTION] <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
+            printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
+            printf("Usage: %s -d <output_bmp_file> [output_decoded_file (optional)]\n",argv[0]);
             printf("Encode a secret message to a bitmap file or decode the secret message from a bitmap file\n");
             printf("\nOptions\n-e\tEncode the bitmap file\n-d\tDecode the bitmap file\n");
-            printf("\nInput bitmap file and secret file to encode bitmap file are MANDATORY to provide\n");
+            printf("\nInput bitmap file and secret file to encode the given bitmap file are MANDATORY to provide during encoding whereas output encoded bitmap file is MANDATORY to provide during decoding\n");
         }
         else if(check_operation_type(argv) == e_encode || check_operation_type(argv) == e_decode){
             printf("%s: missing file operand\n",argv[0]);
@@ -63,7 +64,17 @@ int main(int argc,char *argv[])
             }
         }
         else if(check_operation_type(argv) == e_decode){
-            //decode operation to be added
+            
+            if(argc < 5){
+                printf("## Starting decoding procedure ##\n");
+            }
+            else{
+                printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
+                printf("Usage: %s -d <output_bmp_file> [output_decoded_file (optional)]\n",argv[0]);
+                printf("Encode a secret message to a bitmap file or decode the secret message from a bitmap file\n");
+                printf("\nOptions\n-e\tEncode the bitmap file\n-d\tDecode the bitmap file\n");
+                printf("\nInput bitmap file and secret file to encode the given bitmap file are MANDATORY to provide during encoding whereas output encoded bitmap file is MANDATORY to provide during decoding\n");
+            }
         }
         else{
             fprintf(stderr,"%s: invalid option '%s'\n",argv[0],argv[1]);
@@ -71,10 +82,31 @@ int main(int argc,char *argv[])
         }
     }
     else{
-        printf("Usage: %s [OPTION] <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
-        printf("Encode a secret message to a bitmap file or decode the secret message from a bitmap file\n");
-        printf("\nOptions\n-e\tEncode the bitmap file\n-d\tDecode the bitmap file\n");
-        printf("\nInput bitmap file and secret file to encode bitmap file are MANDATORY to provide\n");
+
+        if(argc == 3){
+
+            if(check_operation_type(argv) == e_decode){
+                printf("## Starting decoding procedure ##\n");
+            }
+            else if(check_operation_type(argv) == e_encode){
+                printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
+                printf("Usage: %s -d <output_bmp_file> [output_decoded_file (optional)]\n",argv[0]);
+                printf("Encode a secret message to a bitmap file or decode the secret message from a bitmap file\n");
+                printf("\nOptions\n-e\tEncode the bitmap file\n-d\tDecode the bitmap file\n");
+                printf("\nInput bitmap file and secret file to encode the given bitmap file are MANDATORY to provide during encoding whereas output encoded bitmap file is MANDATORY to provide during decoding\n");
+            }
+            else{
+                fprintf(stderr,"%s: invalid option '%s'\n",argv[0],argv[1]);
+                printf("Try '%s --help' for more information\n",argv[0]);
+            }
+        }
+        else{
+            printf("Usage: %s -e <bmp_file> <secret_file> [output_bmp_file (optional)]\n",argv[0]);
+            printf("Usage: %s -d <output_bmp_file> [output_decoded_file (optional)]\n",argv[0]);
+            printf("Encode a secret message to a bitmap file or decode the secret message from a bitmap file\n");
+            printf("\nOptions\n-e\tEncode the bitmap file\n-d\tDecode the bitmap file\n");
+            printf("\nInput bitmap file and secret file to encode the given bitmap file are MANDATORY to provide during encoding whereas output encoded bitmap file is MANDATORY to provide during decoding\n");
+        }
     }
 
     return 0;
