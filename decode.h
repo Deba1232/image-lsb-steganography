@@ -18,6 +18,8 @@ typedef struct{
     char *decoded_magic_string; //to store the decoded magic string
     int decoded_extn_size; //to store the decoded extension size
     char *decoded_extn; //to store the decoded extension name
+    int decoded_secret_file_size; //to store the secret file size
+    char *decoded_secret_file_data; //to store the decoded data
 
 } DecodeInfo;
 
@@ -41,6 +43,9 @@ DecodeStatus decode_extn(DecodeInfo *decodeInfo);
 
 /* Decode the size for the encoded secret data */
 DecodeStatus decode_secret_data_size(DecodeInfo *decodeInfo);
+
+/* Decode the secret data */
+DecodeStatus decode_secret_data(DecodeInfo *decodeInfo);
 
 /* Performing the decoding */
 DecodeStatus do_decoding(DecodeInfo *decodeInfo);

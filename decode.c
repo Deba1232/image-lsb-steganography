@@ -143,12 +143,6 @@ DecodeStatus decode_extn_size(DecodeInfo *decodeInfo){
         exit(EXIT_FAILURE);
     }
 
-    char *decoded_extn_size = (char *)calloc(sizeof(int)*8,sizeof(char));
-    if(decoded_extn_size == NULL){
-        fprintf(stderr,"Memory couldn't be allocated for decoded extn size\n");
-        exit(EXIT_FAILURE);
-    }
-
     decoded_extn_size_bits = decode_data_bits_from_encoded_image(sizeof(int),decodeInfo->fptr_image_to_decode);
 
     for(int i=0;i<sizeof(int)*8;i++){
@@ -161,14 +155,36 @@ DecodeStatus decode_extn_size(DecodeInfo *decodeInfo){
     decodeInfo->decoded_extn_size = bin_to_decimal_value;
 
     free(decoded_extn_size_bits);
-    free(decoded_extn_size);
     
     return d_success;
 }
 
 DecodeStatus decode_secret_data_size(DecodeInfo *decodeInfo){
     printf("INFO: Decoding file size\n");
+
+    int bin_to_decimal_value = 0;
+    /*
+        Since size of data is essentially an integer value, sizeof(int)*8 bytes of data is required to decode the secret data size
+    */
+    char *decoded_secret_data_size_bits = (char *)calloc(sizeof(int)*8,sizeof(char));
+    if(decoded_secret_data_size_bits == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for decoded data size bits\n");
+        exit(EXIT_FAILURE);
+    }
     
+    decoded_secret_data_size_bits = decode_data_bits_from_encoded_image(sizeof(int),decodeInfo->fptr_image_to_decode);
+
+    for(int i=0;i<sizeof(int)*8;i++){
+    /*
+        Since size of integer values is 32bits, to convert to decimal, the highest power that 2 can have is 31
+    */
+        bin_to_decimal_value = bin_to_decimal_value + (decoded_secret_data_size_bits[i]*power_of_two(31-i));
+    }
+
+    decodeInfo->decoded_secret_file_size = bin_to_decimal_value;
+
+    free(decoded_secret_data_size_bits);
+
     return d_success;
 }
 
@@ -210,6 +226,45 @@ DecodeStatus decode_extn(DecodeInfo *decodeInfo){
     return d_success;
 }
 
+DecodeStatus decode_secret_data(DecodeInfo *decodeInfo){
+    printf("INFO: Decoding file data\n");
+
+    int idx = 0;
+
+    char *decoded_secret_data_bits = (char *)calloc(decodeInfo->decoded_secret_file_size*8,sizeof(char));
+    if(decoded_secret_data_bits == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for decoded secret data bits\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char *decoded_secret_data = (char *)calloc(decodeInfo->decoded_secret_file_size*8,sizeof(char));
+    if(decoded_secret_data == NULL){
+        fprintf(stderr,"Memory couldn't be allocated for decoded magic string\n");
+        exit(EXIT_FAILURE);
+    }
+
+    decoded_secret_data_bits = decode_data_bits_from_encoded_image(decodeInfo->decoded_secret_file_size,decodeInfo->fptr_image_to_decode);
+
+    for(int i=0;i<decodeInfo->decoded_secret_file_size*8;i+=8){
+        int bin_to_decimal_value = 0;
+    /*
+        Since each character consists of 8bits, to convert to decimal, the highest power that 2 can have is 7
+    */
+        for(int j=i;j<(i+8);j++){
+            bin_to_decimal_value = bin_to_decimal_value + (decoded_secret_data_bits[j] * power_of_two(7-(j-i)));
+        }
+        decoded_secret_data[idx++] = bin_to_decimal_value;
+    }
+    decoded_secret_data[idx] = '\0';
+
+    fwrite(decoded_secret_data,decodeInfo->decoded_secret_file_size,1,decodeInfo->fptr_decoded_output);
+
+    free(decoded_secret_data_bits);
+    free(decoded_secret_data);
+    
+    return d_success;
+}
+
 DecodeStatus do_decoding(DecodeInfo *decodeInfo){
     printf("INFO: Opening required files\n");
 
@@ -246,6 +301,13 @@ DecodeStatus do_decoding(DecodeInfo *decodeInfo){
 
                 if(decode_secret_data_size(decodeInfo) == d_success){
                     printf("INFO: Done\n");
+
+                    if(decode_secret_data(decodeInfo) == d_success){
+                        printf("INFO: Done\n");
+                    }
+                    else{   
+                        return d_failure;
+                    }
                 }
                 else{
                     return d_failure;
@@ -262,6 +324,8 @@ DecodeStatus do_decoding(DecodeInfo *decodeInfo){
     else{
         return d_failure;
     }
+    fclose(decodeInfo->fptr_image_to_decode);
+    fclose(decodeInfo->fptr_decoded_output);
 
     return d_success;
 }
