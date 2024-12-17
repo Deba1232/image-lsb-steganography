@@ -49,42 +49,43 @@ int main(int argc,char *argv[])
     else if((argc > 3) && (argc < 6)){
         //Encode operation
         if(check_operation_type(argv) == e_encode){
-            printf("## Starting encoding procedure ##\n");
+            printf("\033[1;30;47m" "Starting encoding procedure" "\033[m");
+            printf("\n");
 
             if((read_and_validate_encode_args(argv,&encInfo) == e_success)){
 
                 if(do_encoding(&encInfo) == e_success){
                     copy_remaining_img_data(encInfo.fptr_src_image,encInfo.fptr_stego_image);
-                    printf("\n## Encoding done successfully ##\n");
+                    printf("\n" "\033[1;30;47m" "Encoding done successfully" "\033[m" "\n");
                 }
                 else{
-                  fprintf(stderr,"## Aborting encoding procedure ##\n");  
+                  fprintf(stderr,"\033[1;31;47m" "Aborting encoding procedure" "\033[m" "\n");  
                 }
             }
             else{
-                fprintf(stderr,"## Aborting encoding procedure ##\n");
+                fprintf(stderr,"\033[1;31;47m" "Aborting encoding procedure" "\033[m" "\n");
             }
         }
         //Decode operation
         else if(check_operation_type(argv) == e_decode){
             
             if(argc < 5){
-                printf("## Starting decoding procedure ##\n");
+                printf("\033[1;30;47m" "Starting decoding procedure" "\033[m" "\n");
 
                 if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
                     
                     if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
                     
                         if(do_decoding(&decodeInfo) == d_success){
-                            // printf("\n## Decoding done successfully ##\n");
+                            printf("\n" "\033[1;30;47m" "Decoding done successfully" "\033[m" "\n");
                         }
                         else{
-                            fprintf(stderr,"## Aborting decoding procedure ##\n");
+                            fprintf(stderr,"\033[1;31;47m" "Aborting decoding procedure" "\033[m" "\n");
                         }
                     }
                 }
                 else{
-                    fprintf(stderr,"## Aborting decoding procedure ##\n");
+                    fprintf(stderr,"\033[1;31;47m" "Aborting decoding procedure" "\033[m" "\n");
                 }
             }
             else{
@@ -105,19 +106,19 @@ int main(int argc,char *argv[])
         if(argc == 3){
 
             if(check_operation_type(argv) == e_decode){
-                printf("## Starting decoding procedure ##\n");
+                printf("\033[1;30;47m" "Starting decoding procedure" "\033[m" "\n");
 
                 if(read_and_validate_decode_args(argv,&decodeInfo) == d_success){
                     
                     if(do_decoding(&decodeInfo) == d_success){
-                        // printf("\n## Decoding done successfully ##\n");
+                        printf("\n" "\033[1;30;47m" "Decoding done successfully" "\033[m" "\n");
                     }
                     else{
-                        fprintf(stderr,"## Aborting decoding procedure ##\n");
+                        fprintf(stderr,"\033[1;31;47m" "Aborting decoding procedure" "\033[m" "\n");
                     }
                 }
                 else{
-                    fprintf(stderr,"## Aborting decoding procedure ##\n");
+                    fprintf(stderr,"\033[1;31;47m" "Aborting decoding procedure" "\033[m" "\n");
                 }
             }
             else if(check_operation_type(argv) == e_encode){

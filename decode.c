@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "decode.h"
 #include "common.h"
 
@@ -30,7 +31,10 @@ DecodeStatus read_and_validate_decode_args(char *argv[],DecodeInfo *decodeInfo){
 
                     while(*temp){
                         if(!(*temp>='A' && *temp<='Z') && !(*temp>='a' && *temp<='z') && !(*temp>='0' && *temp<='9')){
-                            fprintf(stderr,"ERROR: Please provide a proper name for the decoded data file\n");
+                            printf("\033[0;31m");
+                            printf("ERROR: ");
+                            printf("\033[0m");
+                            printf("Please provide a proper name for the decoded data file\n");
                             return d_failure;
                         }
                         temp++;
@@ -39,17 +43,26 @@ DecodeStatus read_and_validate_decode_args(char *argv[],DecodeInfo *decodeInfo){
                 }
             }
             else{
-                printf("INFO: Output File not mentioned. Creating \"decoded_data\" as default file name\n");
+                printf("\033[0;34m");
+                printf("INFO: ");
+                printf("\033[0m");
+                printf("Output File not mentioned. Creating " "\033[0;34m" "decoded_data" "\033[0m" " as default file name\n");
                 strcpy(decodeInfo->decoded_output_fname,"decoded_data");
             }
         }
         else{
-            fprintf(stderr,"ERROR: Extension for encoded image file is not proper\n");
+            printf("\033[0;31m");
+            printf("ERROR: ");
+            printf("\033[0m");
+            printf("Extension for encoded image file is not proper\n");
             return d_failure;
         }
     }
     else{
-        fprintf(stderr,"ERROR: Not a bmp file\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Not a bmp file\n");
         return d_failure;
     }
 
@@ -88,7 +101,10 @@ char *decode_data_bits_from_encoded_image(int data_size,FILE *fptr_image_to_deco
 }
 
 DecodeStatus decode_magic_string(DecodeInfo *decodeInfo){
-    printf("INFO: Decoding magic string signature\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Decoding magic string signature\n");
 
     int idx = 0;
 
@@ -122,7 +138,10 @@ DecodeStatus decode_magic_string(DecodeInfo *decodeInfo){
         return d_success;
     }
     else{
-        fprintf(stderr,"ERROR: Decoded magic string doesn't match with the provided magic string\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Decoded magic string doesn't match with the provided magic string\n");
         return d_failure;
     }
     
@@ -131,7 +150,10 @@ DecodeStatus decode_magic_string(DecodeInfo *decodeInfo){
 }
 
 DecodeStatus decode_extn_size(DecodeInfo *decodeInfo){
-    printf("INFO: Decoding the extension size in order to get the encoded extension properly\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Decoding the extension size in order to get the encoded extension properly\n");
 
     int bin_to_decimal_value = 0;
     /*
@@ -160,7 +182,10 @@ DecodeStatus decode_extn_size(DecodeInfo *decodeInfo){
 }
 
 DecodeStatus decode_secret_data_size(DecodeInfo *decodeInfo){
-    printf("INFO: Decoding file size\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Decoding file size\n");
 
     int bin_to_decimal_value = 0;
     /*
@@ -189,7 +214,10 @@ DecodeStatus decode_secret_data_size(DecodeInfo *decodeInfo){
 }
 
 DecodeStatus decode_extn(DecodeInfo *decodeInfo){
-    printf("INFO: Decoding output file extension\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Decoding output file extension\n");
 
     int idx = 0;
     
@@ -227,7 +255,10 @@ DecodeStatus decode_extn(DecodeInfo *decodeInfo){
 }
 
 DecodeStatus decode_secret_data(DecodeInfo *decodeInfo){
-    printf("INFO: Decoding file data\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Decoding file data\n");
 
     int idx = 0;
 
@@ -266,44 +297,81 @@ DecodeStatus decode_secret_data(DecodeInfo *decodeInfo){
 }
 
 DecodeStatus do_decoding(DecodeInfo *decodeInfo){
-    printf("INFO: Opening required files\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opening required files\n");
+    sleep(1);
 
     //Encode image file
     decodeInfo->fptr_image_to_decode = fopen(decodeInfo->image_to_decode_fname,"rb");
 
     if(decodeInfo->fptr_image_to_decode == NULL){
-        fprintf(stderr,"ERROR: Unable to open encoded image file %s\n", decodeInfo->image_to_decode_fname);
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Unable to open encoded image file %s\n", decodeInfo->image_to_decode_fname);
         perror("fopen");
 
         return d_failure;
     }
-    printf("INFO: Opened encoded bmp file\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opened encoded bmp file\n");
     //Skipping 54bytes of header data from encoded image file
     fseek(decodeInfo->fptr_image_to_decode,54,SEEK_SET);
 
     if(decode_magic_string(decodeInfo) == d_success){
-        printf("INFO: Done\n");
+        sleep(1);
+        printf("\033[0;34m");
+        printf("INFO: ");
+        printf("\033[0m");
+        printf("Done\n");
 
         if(decode_extn_size(decodeInfo) == d_success){
-            printf("INFO: Done\n");
+            sleep(1);
+            printf("\033[0;34m");
+            printf("INFO: ");
+            printf("\033[0m");
+            printf("Done\n");
 
             if(decode_extn(decodeInfo) == d_success){
-                printf("INFO: Done\n");
+                sleep(1);
+                printf("\033[0;34m");
+                printf("INFO: ");
+                printf("\033[0m");
+                printf("Done\n");
                 //Decoded data output file
                 decodeInfo->fptr_decoded_output = fopen(decodeInfo->decoded_output_fname,"wb");
                 if(decodeInfo->fptr_decoded_output == NULL){
-                    fprintf(stderr,"ERROR: Unable to open output file for decoded data %s\n", decodeInfo->decoded_output_fname);
+                    printf("\033[0;31m");
+                    printf("ERROR: ");
+                    printf("\033[0m");
+                    printf("Unable to open output file for decoded data %s\n", decodeInfo->decoded_output_fname);
                     perror("fopen");
 
                     return d_failure;
                 }
-                printf("INFO: Opened %s\n",decodeInfo->decoded_output_fname);
+                printf("\033[0;34m");
+                printf("INFO: ");
+                printf("\033[0m");
+                printf("Opened %s\n",decodeInfo->decoded_output_fname);
+                sleep(1);
 
                 if(decode_secret_data_size(decodeInfo) == d_success){
-                    printf("INFO: Done\n");
+                    sleep(1);
+                    printf("\033[0;34m");
+                    printf("INFO: ");
+                    printf("\033[0m");
+                    printf("Done\n");
 
                     if(decode_secret_data(decodeInfo) == d_success){
-                        printf("INFO: Done\n");
+                        sleep(1);
+                        printf("\033[0;34m");
+                        printf("INFO: ");
+                        printf("\033[0m");
+                        printf("Done\n");
                     }
                     else{   
                         return d_failure;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "common.h"
 #include "encode.h"
 #include "types.h"
@@ -53,13 +54,19 @@ EncodeStatus read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
 
                     for(int i=1;i<strlen(encodeInfo->extn_secret_file);i++){
                         if(!(encodeInfo->extn_secret_file[i]>='A' && encodeInfo->extn_secret_file[i]<='Z') && !(encodeInfo->extn_secret_file[i]>='a' && encodeInfo->extn_secret_file[i]<='z') && !(encodeInfo->extn_secret_file[i]>='0' && encodeInfo->extn_secret_file[i]<='9')){
-                            fprintf(stderr,"ERROR: Not a proper extension name for secret file\n");  
+                            printf("\033[0;31m");
+                            printf("ERROR: ");
+                            printf("\033[0m");
+                            printf("Not a proper extension name for secret file\n");  
                             return e_failure;
                         }
                     }
                 }
                 else{
-                    fprintf(stderr,"ERROR: Not a proper extension for secret file\n");  
+                    printf("\033[0;31m");
+                    printf("ERROR: ");
+                    printf("\033[0m");
+                    printf("Not a proper extension for secret file\n");  
                     return e_failure;
                 }
 
@@ -72,32 +79,50 @@ EncodeStatus read_and_validate_encode_args(char *argv[],EncodeInfo *encodeInfo){
                             encodeInfo->stego_image_fname = argv[4];
                         }
                         else{
-                            fprintf(stderr,"ERROR: Extension of output image file is not proper\n");
+                            printf("\033[0;31m");
+                            printf("ERROR: ");
+                            printf("\033[0m");
+                            printf("Extension of output image file is not proper\n");
                             return e_failure;
                         }
                     }
                     else{
-                        fprintf(stderr,"ERROR: Output file not a .bmp file\n");
+                        printf("\033[0;31m");
+                        printf("ERROR: ");
+                        printf("\033[0m");
+                        printf("Output file not a .bmp file\n");
                         return e_failure;
                     }
                 }
                 else{
-                    printf("INFO: Output File not mentioned. Creating \"steganoed_img.bmp\" as default\n");
+                    printf("\033[0;34m");
+                    printf("INFO: ");
+                    printf("\033[0m");
+                    printf("Output File not mentioned. Creating " "\033[0;34m" "steganoed_img.bmp" "\033[0m" " as default" "\n");
                     encodeInfo->stego_image_fname = "steganoed_img.bmp";
                 }
             }
            else{
-              fprintf(stderr,"ERROR: Please provide an extension for the secret file\n");  
-              return e_failure;
+                printf("\033[0;31m");
+                printf("ERROR: ");
+                printf("\033[0m");
+                printf("Please provide an extension for the secret file\n");  
+                return e_failure;
             }
         }
         else{
-            fprintf(stderr,"ERROR: Extension of image file to be encoded is not proper\n");
+            printf("\033[0;31m");
+            printf("ERROR: ");
+            printf("\033[0m");
+            printf("Extension of image file to be encoded is not proper\n");
             return e_failure;
         }
     }
     else{
-        fprintf(stderr,"ERROR: File to be encoded not a .bmp file\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("File to be encoded not a .bmp file\n");
         return e_failure;
     }
 
@@ -118,37 +143,62 @@ EncodeStatus open_files(EncodeInfo *encodeInfo)
     // Do Error handling
     if (encodeInfo->fptr_src_image == NULL)
     {
-    	fprintf(stderr, "ERROR: Unable to open image file %s\n", encodeInfo->src_image_fname);
+    	printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Unable to open image file %s\n", encodeInfo->src_image_fname);
         perror("fopen");
 
     	return e_failure;
     }
-    printf("INFO: Opened %s\n",encodeInfo->src_image_fname);
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opened %s\n",encodeInfo->src_image_fname);
+    sleep(1);
 
     // Secret file
     encodeInfo->fptr_secret = fopen(encodeInfo->secret_fname, "rb");
     // Do Error handling
     if (encodeInfo->fptr_secret == NULL)
     {
-    	fprintf(stderr, "ERROR: Unable to open secret file %s\n", encodeInfo->secret_fname);
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+    	printf("Unable to open secret file %s\n", encodeInfo->secret_fname);
         perror("fopen");
 
     	return e_failure;
     }
-    printf("INFO: Opened %s\n",encodeInfo->secret_fname);
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opened %s\n",encodeInfo->secret_fname);
+    sleep(1);
 
     // Stego Image file
     encodeInfo->fptr_stego_image = fopen(encodeInfo->stego_image_fname, "wb");
     // Do Error handling
     if (encodeInfo->fptr_stego_image == NULL)
     {
-    	fprintf(stderr, "ERROR: Unable to open output file %s\n", encodeInfo->stego_image_fname);
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+    	printf("Unable to open output file %s\n", encodeInfo->stego_image_fname);
         perror("fopen");
 
     	return e_failure;
     }
-    printf("INFO: Opened %s\n",encodeInfo->stego_image_fname);
-    printf("INFO: Done\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opened %s\n",encodeInfo->stego_image_fname);
+    sleep(1);
+
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Done\n");
 
     // No failure return e_success
     return e_success;
@@ -159,18 +209,30 @@ EncodeStatus open_files(EncodeInfo *encodeInfo)
 */
 
 EncodeStatus check_capacity(EncodeInfo *encodeInfo){
-    printf("INFO: Checking for %s size\n",encodeInfo->secret_fname);
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Checking for %s size\n",encodeInfo->secret_fname);
     encodeInfo->size_secret_file = get_file_size(encodeInfo->fptr_secret);
 
     if(encodeInfo->size_secret_file){
-        printf("INFO: Done. Not empty\n");
+        sleep(1);
+        printf("\033[0;34m");
+        printf("INFO: ");
+        printf("\033[0m");
+        printf("Done. Not empty\n");
     }
     else{
-        printf("INFO: Secret file %s is empty, nothing to encode\n",encodeInfo->secret_fname);
+        printf("\033[0;34m");
+        printf("INFO: ");
+        printf("\033[0m");
+        printf("Secret file %s is empty, nothing to encode\n",encodeInfo->secret_fname);
     }
 
-
-    printf("INFO: Checking for %s capacity to handle %s\n",encodeInfo->src_image_fname,encodeInfo->secret_fname);
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Checking for %s capacity to handle %s\n",encodeInfo->src_image_fname,encodeInfo->secret_fname);
 
     encodeInfo->image_capacity = get_image_size_for_bmp(encodeInfo->fptr_src_image);
 
@@ -217,7 +279,10 @@ EncodeStatus check_capacity(EncodeInfo *encodeInfo){
 }
 
 EncodeStatus copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stegano_image){
-    printf("INFO: Copying image header\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Copying image header\n");
     //since fptr_src_image now points to the 28th byte, rewind the file position indicator to the start
     rewind(fptr_src_image);
 
@@ -307,7 +372,10 @@ EncodeStatus encode_data_to_image(const char *data,int data_size,FILE *fptr_src_
 }
 
 EncodeStatus encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo){
-    printf("INFO: Encoding magic string signature\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Encoding magic string signature\n");
 
     uint magic_string_length = strlen(magic_string);
 
@@ -315,49 +383,73 @@ EncodeStatus encode_magic_string(const char *magic_string,EncodeInfo *encodeInfo
         return e_success;
     }
     else{
-        fprintf(stderr,"ERROR: Magic string couldn't be encoded\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Magic string couldn't be encoded\n");
         return e_failure;
     }
 }
 
 EncodeStatus encode_secret_file_extn_size(int extn_size,EncodeInfo *encodeInfo){
-    printf("INFO: Encoding size of secret file extension (an integer value)\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Encoding size of secret file extension (an integer value)\n");
 
     if(encode_data_size_to_image(extn_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
         return e_success;
     }
     else{
-        fprintf(stderr,"ERROR: Secret file extension size couldn't be encoded\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Secret file extension size couldn't be encoded\n");
         return e_failure;
     }
 }
 
 EncodeStatus encode_secret_file_size(long file_size,EncodeInfo *encodeInfo){
-    printf("INFO: Encoding size of secret file (an integer value)\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Encoding size of secret file (an integer value)\n");
 
     if(encode_data_size_to_image(file_size,encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
         return e_success;
     }
     else{
-        fprintf(stderr,"ERROR: Secret file content size couldn't be encoded\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Secret file content size couldn't be encoded\n");
         return e_failure;
     }
 }
 
 EncodeStatus encode_secret_file_extn(const char *file_extn, EncodeInfo *encodeInfo){
-    printf("INFO: Encoding secret file extension\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Encoding secret file extension\n");
 
     if(encode_data_to_image(file_extn,strlen(file_extn),encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
         return e_success;
     }
     else{
-        fprintf(stderr,"ERROR: Secret file extension couldn't be encoded\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Secret file extension couldn't be encoded\n");
         return e_failure;
     }
 }
 
 EncodeStatus encode_secret_file_data(EncodeInfo *encodeInfo){
-    printf("INFO: Encoding secret file data\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Encoding secret file data\n");
 
     rewind(encodeInfo->fptr_secret);
 
@@ -367,37 +459,71 @@ EncodeStatus encode_secret_file_data(EncodeInfo *encodeInfo){
         return e_success;
     }
     else{
-        fprintf(stderr,"ERROR: Secret file data couldn't be encoded\n");
+        printf("\033[0;31m");
+        printf("ERROR: ");
+        printf("\033[0m");
+        printf("Secret file data couldn't be encoded\n");
         return e_failure;
     }
 }
 
 EncodeStatus do_encoding(EncodeInfo *encodeInfo){
-    printf("INFO: Opening required files...\n");
+    printf("\033[0;34m");
+    printf("INFO: ");
+    printf("\033[0m");
+    printf("Opening required files...\n");
+    sleep(1);
 
     if(open_files(encodeInfo) == e_success){
 
         if(check_capacity(encodeInfo) == e_success){
-            printf("INFO: Done. Found OK\n");
-            printf("\n## Encoding procedure started ##\n");
+            sleep(1);
+            printf("\033[0;34m");
+            printf("INFO: ");
+            printf("\033[0m");
+            printf("Done. Found OK\n");
+            printf("\n" "\033[1;30;47m" "Encoding procedure started" "\033[m" "\n");
 
             if(copy_bmp_header(encodeInfo->fptr_src_image,encodeInfo->fptr_stego_image) == e_success){
-                printf("INFO: Done\n");
+                sleep(1);
+                printf("\033[0;34m");
+                printf("INFO: ");
+                printf("\033[0m");
+                printf("Done\n");
 
                 if(encode_magic_string(MAGIC_STRING,encodeInfo) == e_success){
-                    printf("INFO: Done\n");
+                    sleep(1);
+                    printf("\033[0;34m");
+                    printf("INFO: ");
+                    printf("\033[0m");
+                    printf("Done\n");
 
                     if(encode_secret_file_extn_size(strlen(encodeInfo->extn_secret_file),encodeInfo) == e_success){
-                        printf("INFO: Done\n");
+                        sleep(1);
+                        printf("\033[0;34m");
+                        printf("INFO: ");
+                        printf("\033[0m");
+                        printf("Done\n");
 
                         if(encode_secret_file_extn(encodeInfo->extn_secret_file,encodeInfo) == e_success){
-                            printf("INFO: Done\n");
+                            sleep(1);
+                            printf("\033[0;34m");
+                            printf("INFO: ");
+                            printf("\033[0m");
+                            printf("Done\n");
 
                             if(encode_secret_file_size(encodeInfo->size_secret_file,encodeInfo) == e_success){
-                                printf("INFO: Done\n");
+                                sleep(1);
+                                printf("\033[0;34m");
+                                printf("INFO: ");
+                                printf("\033[0m");
+                                printf("Done\n");
 
                                 if(encode_secret_file_data(encodeInfo) == e_success){
-                                    printf("INFO: Done\n");
+                                    printf("\033[0;34m");
+                                    printf("INFO: ");
+                                    printf("\033[0m");
+                                    printf("Done\n");
                                     fclose(encodeInfo->fptr_secret);
                                 }
                                 else{
@@ -421,12 +547,18 @@ EncodeStatus do_encoding(EncodeInfo *encodeInfo){
                 }
             }
             else{
-                fprintf(stderr,"ERROR: Image header couldn't be copied\n");
+                printf("\033[0;31m");
+                printf("ERROR: ");
+                printf("\033[0m");
+                printf("Image header couldn't be copied\n");
                 return e_failure;
             }
         }
         else{
-            fprintf(stderr,"ERROR: \"%s\" doesn't have the capacity to encode \"%s\"\n",encodeInfo->src_image_fname,encodeInfo->secret_fname);
+            printf("\033[0;31m");
+            printf("ERROR: ");
+            printf("\033[0m");
+            printf("\"%s\" doesn't have the capacity to encode \"%s\"\n",encodeInfo->src_image_fname,encodeInfo->secret_fname);
             return e_failure;
         }
     }
